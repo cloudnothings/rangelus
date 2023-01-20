@@ -6,7 +6,7 @@ const Navbar = ({ loggedIn }: { loggedIn: boolean }) => {
   return (
     <div className="h-12 bg-black container min-w-full flex flex-row justify-between">
       <Link href="/" className="flex flex-row items-center justify-center gap-2 px-4 py-2 text-white no-underline">
-        <span className="text-2xl font-bold">Cloud</span>
+        <span className="text-2xl font-bold">Websocket Chat</span>
       </Link>
       <div className="p-1">
         <button
