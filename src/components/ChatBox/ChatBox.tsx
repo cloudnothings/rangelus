@@ -36,7 +36,9 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     },
   );
   useEffect(() => {
-    const pusher = new PusherJS(env.NEXT_PUBLIC_SOKETI_APP_KEY, {
+    // Potential Security Issue? Exposed Environment Variables?
+    const pusher = new PusherJS(
+      env.NEXT_PUBLIC_SOKETI_APP_KEY, {
       wsHost: env.NEXT_PUBLIC_SOKETI_HOST,
       wsPort: parseInt(env.NEXT_PUBLIC_SOKETI_PORT),
       wssPort: parseInt(env.NEXT_PUBLIC_SOKETI_PORT),

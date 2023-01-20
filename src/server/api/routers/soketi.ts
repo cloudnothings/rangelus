@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import Pusher from "pusher";
 import { env } from "../../../env/server.mjs";
 import { TRPCError } from "@trpc/server";
+
 export const soketi = new Pusher({
   host: env.SOKETI_HOST,
   appId: env.SOKETI_APP_ID,
