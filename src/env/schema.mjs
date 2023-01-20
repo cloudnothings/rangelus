@@ -26,6 +26,11 @@ export const serverSchema = z.object({
   AZURE_CLIENT_ID: z.string(),
   AZURE_CLIENT_SECRET: z.string(),
   AZURE_TENANT_ID: z.string(),
+  SOKETI_HOST: z.string(),
+  SOKETI_PORT: z.string(),
+  SOKETI_APP_ID: z.string(),
+  SOKETI_APP_KEY: z.string(),
+  SOKETI_APP_SECRET: z.string(),
 });
 
 /**
@@ -45,6 +50,11 @@ export const serverEnv = {
   AZURE_CLIENT_ID: process.env.AZURE_CLIENT_ID,
   AZURE_CLIENT_SECRET: process.env.AZURE_CLIENT_SECRET,
   AZURE_TENANT_ID: process.env.AZURE_TENANT_ID,
+  SOKETI_HOST: process.env.SOKETI_HOST,
+  SOKETI_PORT: process.env.SOKETI_PORT,
+  SOKETI_APP_ID: process.env.SOKETI_APP_ID,
+  SOKETI_APP_KEY: process.env.SOKETI_APP_KEY,
+  SOKETI_APP_SECRET: process.env.SOKETI_APP_SECRET,
 };
 
 /**
@@ -54,6 +64,11 @@ export const serverEnv = {
  */
 export const clientSchema = z.object({
   // NEXT_PUBLIC_CLIENTVAR: z.string(),
+  NEXT_PUBLIC_KEY: z.string(),
+  NEXT_PUBLIC_SOKETI_HOST: z.string(),
+  NEXT_PUBLIC_SOKETI_PORT: z.string(),
+  NEXT_PUBLIC_SOKETI_APP_ID: z.string(),
+  NEXT_PUBLIC_SOKETI_APP_KEY: z.string(),
 });
 
 /**
@@ -63,5 +78,10 @@ export const clientSchema = z.object({
  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
  */
 export const clientEnv = {
+  NEXT_PUBLIC_KEY: process.env.NEXT_PUBLIC_KEY,
+  NEXT_PUBLIC_SOKETI_HOST: process.env.NEXT_PUBLIC_SOKETI_HOST,
+  NEXT_PUBLIC_SOKETI_PORT: process.env.NEXT_PUBLIC_SOKETI_PORT,
+  NEXT_PUBLIC_SOKETI_APP_ID: process.env.NEXT_PUBLIC_SOKETI_APP_ID,
+  NEXT_PUBLIC_SOKETI_APP_KEY: process.env.NEXT_PUBLIC_SOKETI_APP_KEY,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };

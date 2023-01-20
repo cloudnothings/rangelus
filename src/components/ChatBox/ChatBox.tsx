@@ -1,33 +1,120 @@
-const MESSAGE_LIMIT = 10
-const ChatBox = ({
-  messages
-}: { messages: string[] }) => {
+import { useEffect, useState } from "react";
+import PusherJS from "pusher-js";
+import { env } from "../../env/client.mjs";
+import { api } from "../../utils/api";
+import { Message, User } from "@prisma/client";
 
+const MESSAGE_LIMIT = 10
+const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
+  const utils = api.useContext();
+
+  const [cursor, setCursor] = useState<number>(0);
+  const [chats, setChats] = useState<(Message & { author: User })[]>(
+    utils.soketi.getMessages.getInfiniteData({
+      channel: chatChannel, limit: MESSAGE_LIMIT
+    })?.pages.flatMap(page => page.messages) || []
+  );
+  // setup infinite query for socketi get messages
+  const { isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = api.soketi.getMessages.useInfiniteQuery(
+    { channel: chatChannel, limit: MESSAGE_LIMIT },
+    {
+      getNextPageParam: (lastPage) => {
+        if (lastPage.messages.length < MESSAGE_LIMIT) return undefined;
+        return cursor + MESSAGE_LIMIT;
+      },
+      enabled: !!chatChannel,
+      keepPreviousData: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      refetchIntervalInBackground: false,
+      onSuccess: (data) => {
+        setCursor((prevState) => prevState + MESSAGE_LIMIT);
+        setChats((prevState) => [...prevState, ...data.pages.flatMap((page) => page.messages)]);
+      },
+    },
+  );
+  useEffect(() => {
+    const pusher = new PusherJS(env.NEXT_PUBLIC_SOKETI_APP_KEY, {
+      wsHost: env.NEXT_PUBLIC_SOKETI_HOST,
+      wsPort: parseInt(env.NEXT_PUBLIC_SOKETI_PORT),
+      wssPort: parseInt(env.NEXT_PUBLIC_SOKETI_PORT),
+      cluster: "mt1",
+      forceTLS: true,
+      enabledTransports: ["ws", "wss"],
+    });
+    const channel = pusher.subscribe(chatChannel);
+    channel.bind("chat-event", function (data: Message & { author: User }) {
+      setChats((prevState) => [
+        data, ...prevState,
+      ]);
+    });
+    return () => {
+      pusher.unsubscribe(chatChannel);
+    };
+  }, []);
+  const { mutateAsync } = api.soketi.sendMessage.useMutation();
+  const [input, setInput] = useState('');
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      setInput('')
+      mutateAsync({ message: input, channel: chatChannel })
+    } else if (event.key === 'Enter') {
+      // add new line to input
+    }
+  }
+  function handleInput(event: any) {
+    let value = event.target.value;
+    if (!value.trim().length) {
+      value = value.replace(/\r?\n/g, '');
+    }
+    setInput(value);
+    // update height of textarea element
+  }
   return (
-    <div className="flex flex-col">
-      <div className="bg-white border-2 border-black rounded-xl rounded-b-none p-2">
+    <div className="container flex flex-col w-96">
+      <div className="bg-gray-800 border-0 h-96 overflow-scroll scrollbar-thin scrollbar-thumb-rounded-xl scrollbar-thumb-slate-900  rounded-md rounded-b-none p-2">
         <div className="flex flex-col gap-2 ">
-          {messages.slice(-MESSAGE_LIMIT).map((message, index) => (
+          {chats.map((message, index) => (
             <ChatLine key={index} message={message} />
           ))}
-
         </div>
       </div>
-      <div className="bg-white border-2 border-t-0 border-black rounded-xl rounded-t-none p-2">
-        <textarea ></textarea>
-      </div>
-    </div>
+      <textarea
+        rows={4}
+        className="block p-2.5 w-full text-sm rounded-t-none
+       text-gray-900 bg-gray-50 rounded-lg border
+        border-gray-300 focus:ring-blue-500
+         focus:border-blue-500 dark:bg-gray-700
+          dark:border-gray-600 dark:placeholder-gray-400
+           dark:text-white dark:focus:ring-blue-500
+            dark:focus:border-blue-500"
+        placeholder="Write your thoughts here..."
+        value={input}
+        onKeyDown={handleKeyDown}
+        onInput={handleInput}
+      />
+    </div >
   )
 }
 
-const ChatLine = ({ message }: { message: string }) => {
+const ChatLine = ({ message }: { message: Message & { author: User } }) => {
   return (
     <div className="flex flex-row items-center gap-2">
       {/* Profile Picture Filler */}
-      <div className="w-8 h-8 bg-black rounded-full"></div>
-      <div className="text-black ">{message}</div>
+      <img className="w-8 h-8 bg-black rounded-full" src={message.author.image || '/favicon.ico'}></img>
+      <div className="flex flex-col">
+        <div className="text-gray-500 text-xs font-medium">
+          {message.author.name}
+        </div>
+        <div className="text-gray-50">
+          {message.content}
+        </div>
+      </div>
     </div>
   )
 }
+
 
 export default ChatBox

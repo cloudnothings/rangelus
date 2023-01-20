@@ -1,10 +1,12 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
-import ChatBox from "../components/ChatBox/ChatBox";
+import Chat from "../features/Chat/Chat";
+import { useSession } from "next-auth/react";
 
 const Home: NextPage = () => {
-  const messages = ["Hello", "World, this is a test", "Hi", "Hello", "World, this is a test ", "Hi", "Hello", "World, this is a test", "Hi", "Hello", "World, this is a test", "Hi"]
+  const { data: session, status } = useSession();
+  if (status === "loading") return <></>
   return (
     <>
       <Head>
@@ -13,11 +15,17 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
-        <Navbar />
-        <div className="min-w-full flex flex-row justify-evenly items-center gap-2 p-4 mt-24">
-          <ChatBox messages={messages} />
-          <ChatBox messages={messages} />
-        </div>
+        <Navbar loggedIn={session?.user ? true : false} />
+        {session?.user ? (
+          <div className="min-w-full items-center mt-24">
+            <Chat />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 p-4 mt-24">
+            <h1 className="text-white font-bold text-4xl">Welcome to Cloud</h1>
+            <h2 className="text-white font-medium text-2xl">Sign in to start chatting</h2>
+          </div>
+        )}
       </main>
     </>
   );
