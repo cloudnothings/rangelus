@@ -1,4 +1,4 @@
-import { Channel } from '@prisma/client';
+import type { Channel } from '@prisma/client';
 import { useState } from 'react';
 import ChatBox from '../../components/ChatBox/ChatBox';
 import { api } from '../../utils/api';
@@ -8,7 +8,8 @@ const Chat = () => {
   const { data: channels, isLoading, isInitialLoading, isSuccess } = api.channel.getPublicChannels.useQuery(undefined, {
     onSuccess: (data) => {
       setCurrentChannel(data[0])
-    }
+    },
+    refetchOnReconnect: false,
   })
   if (isLoading || isInitialLoading) return <></>
   if (isSuccess) {

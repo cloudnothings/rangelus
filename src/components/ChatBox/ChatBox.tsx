@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import PusherJS from "pusher-js";
 import { env } from "../../env/client.mjs";
 import { api } from "../../utils/api";
-import { Message, User } from "@prisma/client";
+import type { Message, User } from "@prisma/client";
+import Image from "next/image.js";
 
 const MESSAGE_LIMIT = 10
 const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
@@ -15,7 +16,7 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     })?.pages.flatMap(page => page.messages) || []
   );
   // setup infinite query for socketi get messages
-  const { isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = api.soketi.getMessages.useInfiniteQuery(
+  api.soketi.getMessages.useInfiniteQuery(
     { channel: chatChannel, limit: MESSAGE_LIMIT },
     {
       getNextPageParam: (lastPage) => {
@@ -53,18 +54,18 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     return () => {
       pusher.unsubscribe(chatChannel);
     };
-  }, []);
-  const { mutateAsync } = api.soketi.sendMessage.useMutation();
+  }, [chatChannel]);
+  const { mutate } = api.soketi.sendMessage.useMutation();
   const [input, setInput] = useState('');
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
-      setInput('')
-      mutateAsync({ message: input, channel: chatChannel })
+      mutate({ message: input, channel: chatChannel })
+      setInput('');
     } else if (event.key === 'Enter') {
       // add new line to input
     }
   }
-  function handleInput(event: any) {
+  function handleInput(event: React.ChangeEvent<HTMLTextAreaElement>) {
     let value = event.target.value;
     if (!value.trim().length) {
       value = value.replace(/\r?\n/g, '');
@@ -103,10 +104,15 @@ const ChatLine = ({ message }: { message: Message & { author: User } }) => {
   return (
     <div className="flex flex-row items-center gap-2">
       {/* Profile Picture Filler */}
-      <img className="w-8 h-8 bg-black rounded-full" src={message.author.image || '/favicon.ico'}></img>
+      <div className="w-8 h-8 bg-black rounded-full">
+        <Image
+          alt={`${message.author.name || 'default'}'s profile picture`} src={message.author.image || '/favicon.ico'}
+          width={32} height={32} className="rounded-full"
+        />
+      </div>
       <div className="flex flex-col">
         <div className="text-gray-500 text-xs font-medium">
-          {message.author.name}
+          {message.author.name} - {new Date(message.createdAt).toLocaleTimeString()}
         </div>
         <div className="text-gray-50">
           {message.content}

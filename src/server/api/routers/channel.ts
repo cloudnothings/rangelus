@@ -1,10 +1,8 @@
-import { z } from "zod";
-
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const channelRouter = createTRPCRouter({
-  getPublicChannels: protectedProcedure.query(({ ctx }) => {
-    return ctx.prisma.channel.findMany({
+  getPublicChannels: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.channel.findMany({
       where: {
         public: true,
       },

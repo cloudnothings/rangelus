@@ -16,10 +16,12 @@ export const soketiRouter = createTRPCRouter({
   sendMessage: protectedProcedure
     .input(z.object({ message: z.string(), channel: z.string() }))
     .mutation(async ({ input, ctx }) => {
+      const now = new Date();
       await soketi
         .trigger(input.channel, "chat-event", {
           content: input.message,
           author: ctx.session?.user,
+          createdAt: now.toISOString(),
         })
         .catch(() => {
           throw new TRPCError({
@@ -41,6 +43,7 @@ export const soketiRouter = createTRPCRouter({
                 id: ctx.session?.user.id,
               },
             },
+            createdAt: now,
           },
         })
         .catch(() => {
@@ -81,7 +84,7 @@ export const soketiRouter = createTRPCRouter({
       let nextCursor: typeof cursor | undefined = undefined;
       if (messages.length > limit) {
         const nextItem = messages.pop();
-        nextCursor = nextItem!.id;
+        nextCursor = nextItem?.id;
       }
       return { messages, nextCursor };
     }),
