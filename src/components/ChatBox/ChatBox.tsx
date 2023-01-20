@@ -3,12 +3,11 @@ import PusherJS from "pusher-js";
 import { env } from "../../env/client.mjs";
 import { api } from "../../utils/api";
 import type { Message, User } from "@prisma/client";
-import img from "next/image.js";
+import { boolean } from "zod";
 
-const MESSAGE_LIMIT = 10
+const MESSAGE_LIMIT = 100
 const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
   const utils = api.useContext();
-
   const [cursor, setCursor] = useState<number>(0);
   const [chats, setChats] = useState<(Message & { author: User })[]>(
     utils.soketi.getMessages.getInfiniteData({
@@ -55,23 +54,23 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
       pusher.unsubscribe(chatChannel);
     };
   }, [chatChannel]);
+
   const { mutate } = api.soketi.sendMessage.useMutation();
   const [input, setInput] = useState('');
+  // Submit if enter key only
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
       mutate({ message: input, channel: chatChannel })
       setInput('');
-    } else if (event.key === 'Enter') {
-      // add new line to input
     }
   }
+  // Update input value and update height of textarea element
   function handleInput(event: React.ChangeEvent<HTMLTextAreaElement>) {
     let value = event.target.value;
     if (!value.trim().length) {
       value = value.replace(/\r?\n/g, '');
     }
     setInput(value);
-    // update height of textarea element
   }
   return (
     <div className="container flex flex-col w-96">
@@ -99,23 +98,31 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     </div >
   )
 }
-
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ')
+}
 const ChatLine = ({ message }: { message: Message & { author: User } }) => {
+  const [open, setOpen] = useState(false)
   return (
-    <div className="flex flex-row items-center gap-2">
+    <div className="flex flex-row items-start gap-2">
       {/* Profile Picture Filler */}
       <img
         src={message.author.image || '/favicon.ico'}
-        className="w-8 h-8 bg-black rounded-full"
+        className="w-8 h-8 mt-1 rounded-full"
       />
-      <div className="flex flex-col">
+      <button
+        onClick={() => setOpen(!open)}
+        className={classNames(
+          open ? '' : 'max-h-32',
+          "flex flex-col w-full overflow-ellipsis cursor-pointer hover:rounded-md px-2 overflow-hidden hover:transition-opacity hover:bg-opacity-20 hover:bg-black"
+        )}>
         <div className="text-gray-500 text-xs font-medium">
           {message.author.name} - {new Date(message.createdAt).toLocaleTimeString()}
         </div>
-        <div className="text-gray-50">
+        <div className="text-gray-50 text-start break-all">
           {message.content}
         </div>
-      </div>
+      </button>
     </div>
   )
 }

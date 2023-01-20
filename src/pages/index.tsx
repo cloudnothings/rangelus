@@ -17,7 +17,7 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-[#008080] to-[#000000]">
         <Navbar loggedIn={session?.user ? true : false} />
         {session?.user ? (
-          <div className="min-w-full items-center mt-24">
+          <div className="mt-24">
             <Chat />
           </div>
         ) : (
