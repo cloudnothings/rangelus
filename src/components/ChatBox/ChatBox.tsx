@@ -3,7 +3,7 @@ import PusherJS from "pusher-js";
 import { env } from "../../env/client.mjs";
 import { api } from "../../utils/api";
 import type { Message, User } from "@prisma/client";
-import Image from "next/image.js";
+import img from "next/image.js";
 
 const MESSAGE_LIMIT = 10
 const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
@@ -104,12 +104,10 @@ const ChatLine = ({ message }: { message: Message & { author: User } }) => {
   return (
     <div className="flex flex-row items-center gap-2">
       {/* Profile Picture Filler */}
-      <div className="w-8 h-8 bg-black rounded-full">
-        <Image
-          alt={`${message.author.name || 'default'}'s profile picture`} src={message.author.image || '/favicon.ico'}
-          width={32} height={32} className="rounded-full"
-        />
-      </div>
+      <img
+        src={message.author.image || '/favicon.ico'}
+        className="w-8 h-8 bg-black rounded-full"
+      />
       <div className="flex flex-col">
         <div className="text-gray-500 text-xs font-medium">
           {message.author.name} - {new Date(message.createdAt).toLocaleTimeString()}
