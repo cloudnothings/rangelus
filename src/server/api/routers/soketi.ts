@@ -60,33 +60,27 @@ export const soketiRouter = createTRPCRouter({
     .input(
       z.object({
         channel: z.string(),
-        cursor: z.number().nullish(),
         limit: z.number().min(1).max(100).nullish(),
       })
     )
     .query(async ({ input, ctx }) => {
-      const limit = input.limit ?? 50;
-      const { cursor } = input;
-      const messages = await ctx.prisma.message.findMany({
-        take: limit + 1,
-        include: {
-          author: true,
-        },
-        where: {
-          channel: {
-            id: input.channel,
+      return await ctx.prisma.message
+        .findMany({
+          take: input.limit ?? 50 + 1,
+          include: {
+            author: true,
           },
-        },
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: {
-          id: "desc",
-        },
-      });
-      let nextCursor: typeof cursor | undefined = undefined;
-      if (messages.length > limit) {
-        const nextItem = messages.pop();
-        nextCursor = nextItem?.id;
-      }
-      return { messages, nextCursor };
+          where: {
+            channel: {
+              id: input.channel,
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        })
+        .then((messages) => {
+          return messages.reverse();
+        });
     }),
 });

@@ -1,27 +1,23 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import PusherJS from "pusher-js";
 import { env } from "../../env/client.mjs";
 import { api } from "../../utils/api";
 import type { Message, User } from "@prisma/client";
-import { boolean } from "zod";
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 
-const MESSAGE_LIMIT = 100
-const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
-  const utils = api.useContext();
-  const [cursor, setCursor] = useState<number>(0);
-  const [chats, setChats] = useState<(Message & { author: User })[]>(
-    utils.soketi.getMessages.getInfiniteData({
-      channel: chatChannel, limit: MESSAGE_LIMIT
-    })?.pages.flatMap(page => page.messages) || []
+const MESSAGE_LIMIT = 20
+const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChannel: string }) => {
+  ///////
+  // DATA
+  ///////
+  const [chats, setChats] = useState<(Message & { author: User })[]>([]
   );
-  // setup infinite query for socketi get messages
-  api.soketi.getMessages.useInfiniteQuery(
+  useEffect(() => {
+    setChats([])
+  }, [chatChannel])
+  api.soketi.getMessages.useQuery(
     { channel: chatChannel, limit: MESSAGE_LIMIT },
     {
-      getNextPageParam: (lastPage) => {
-        if (lastPage.messages.length < MESSAGE_LIMIT) return undefined;
-        return cursor + MESSAGE_LIMIT;
-      },
       enabled: !!chatChannel,
       keepPreviousData: true,
       refetchOnWindowFocus: false,
@@ -29,10 +25,7 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
       refetchOnReconnect: false,
       refetchInterval: false,
       refetchIntervalInBackground: false,
-      onSuccess: (data) => {
-        setCursor((prevState) => prevState + MESSAGE_LIMIT);
-        setChats((prevState) => [...prevState, ...data.pages.flatMap((page) => page.messages)]);
-      },
+      onSuccess: setChats,
     },
   );
   useEffect(() => {
@@ -49,14 +42,13 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     const channel = pusher.subscribe(chatChannel);
     channel.bind("chat-event", function (data: Message & { author: User }) {
       setChats((prevState) => [
-        data, ...prevState,
+        ...prevState, data
       ]);
     });
     return () => {
       pusher.unsubscribe(chatChannel);
     };
   }, [chatChannel]);
-
   const { mutate } = api.soketi.sendMessage.useMutation();
   const [input, setInput] = useState('');
   // Submit if enter key only
@@ -74,30 +66,83 @@ const ChatBox = ({ chatChannel }: { chatChannel: string }) => {
     }
     setInput(value);
   }
+
+  //////////////
+  // ANIMATION
+  //////////////
+  const [animationParent] = useAutoAnimate({ duration: 200, easing: 'ease-in-out' })
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [showButton, setShowButton] = useState(false);
+  useEffect(() => {
+    // Listen for changes in scroll position
+    const handleScroll = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (autoScroll) {
+        setAutoScroll(false);
+      }
+      // Show the return to bottom button if the user has scrolled up more than 25%
+      if (!autoScroll && target.scrollTop < target.scrollHeight * 0.25) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
+    };
+
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+      chatBox.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (chatBox) {
+        chatBox.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [autoScroll]);
+
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    if (chats.length > 0 && autoScroll) {
+      const chatBox = document.getElementById('chat-box');
+      if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+  }, [chats, autoScroll]);
+
+  const handleReturnToBottomClick = () => {
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    setAutoScroll(true);
+    setShowButton(false);
+  }
+
   return (
-    <div className="container flex flex-col w-96">
-      <div className="bg-gray-800 border-0 h-96 overflow-scroll scrollbar-thin scrollbar-thumb-rounded-xl scrollbar-thumb-slate-900  rounded-md rounded-b-none p-2">
-        <div className="flex flex-col gap-2 ">
-          {chats.map((message, index) => (
-            <ChatLine key={index} message={message} />
-          ))}
+    <div className="container">
+      <div className="flex flex-col" >
+        <div id="chat-box" className="bg-gray-800 border-0 w-96 z-0 h-96 overflow-scroll scroll-smooth scrollbar-thin scrollbar-thumb-rounded-xl scrollbar-thumb-slate-900  rounded-md rounded-b-none p-2">
+          {/* @ts-expect-error - auto-animate */}
+          <div className="flex flex-col gap-2 z-0" ref={animationParent}>
+            {chats.map((message, index) => (
+              <ChatLine key={index} message={message} />
+            ))}
+          </div>
+          {/* <button
+            className="bg-opacity-20 text-xs z-20 bg-gray-300 hover:bg-opacity-40 text-white rounded-md px-2 py-1"
+            onClick={handleReturnToBottomClick}>▼</button> */}
         </div>
-      </div>
-      <textarea
-        rows={4}
-        className="block p-2.5 w-full text-sm rounded-t-none
-       text-gray-900 bg-gray-50 rounded-lg border
-        border-gray-300 focus:ring-blue-500
-         focus:border-blue-500 dark:bg-gray-700
-          dark:border-gray-600 dark:placeholder-gray-400
-           dark:text-white dark:focus:ring-blue-500
-            dark:focus:border-blue-500"
-        placeholder="Write your thoughts here..."
-        value={input}
-        onKeyDown={handleKeyDown}
-        onInput={handleInput}
-      />
-    </div >
+        <textarea
+          rows={4}
+          className="block p-2.5 w-full text-sm rounded-t-none text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="Write your thoughts here..."
+          value={input}
+          onKeyDown={handleKeyDown}
+          onInput={handleInput}
+        />
+      </div >
+    </div>
   )
 }
 function classNames(...classes: string[]) {
@@ -106,7 +151,7 @@ function classNames(...classes: string[]) {
 const ChatLine = ({ message }: { message: Message & { author: User } }) => {
   const [open, setOpen] = useState(false)
   return (
-    <div className="flex flex-row items-start gap-2">
+    <div className="flex flex-row items-start gap-2 z-0">
       {/* Profile Picture Filler */}
       <img
         src={message.author.image || '/favicon.ico'}

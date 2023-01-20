@@ -9,7 +9,7 @@ const Chat = () => {
     onSuccess: (data) => {
       setCurrentChannel(data[0])
     },
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   })
   if (isLoading || isInitialLoading) return <></>
   if (isSuccess) {
@@ -17,16 +17,14 @@ const Chat = () => {
       <div className='container flex justify-evenly items-center'>
         <div>
           {currentChannel?.id ? (
-            <>
-              <div className='flex flex-row justify-between'>
-                <select className="bg-transparent border-0 rounded-md p-1 m-1 focus:border-0 focus:ring-0 focus:ring-transparent focus:outline-0 text-white font-medium "
-                  onChange={(e) => setCurrentChannel(channels?.find(channel => channel.id === e.target.value))}>
-                  {channels?.map(channel => (
-                    <option key={channel.id} value={channel.id}>{channel.name}</option>
-                  ))}
-                </select>
-              </div>
-              <ChatBox chatChannel={currentChannel.id} /></>
+            <div className='flex flex-col items-end'>
+              <select className="bg-transparent border-0 rounded-md p-1 m-1 focus:border-0 focus:ring-0 focus:ring-transparent focus:outline-0 text-white font-medium w-22"
+                onChange={(e) => setCurrentChannel(channels?.find(channel => channel.id === e.target.value))}>
+                {channels?.map(channel => (
+                  <option className='bg-black text-white' key={channel.id} value={channel.id}>{channel.name}</option>
+                ))}
+              </select>
+              <ChatBox chatChannel={currentChannel.id} /></div>
           ) : (
             <></>
           )}
