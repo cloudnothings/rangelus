@@ -17,19 +17,29 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-[#008080] to-[#000000]">
         <Navbar loggedIn={session?.user ? true : false} />
         {session?.user ? (
-          <div className="mt-24">
-            <Chat />
-          </div>
+          <ChatView />
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 p-4 mt-24">
-            <h1 className="text-white font-bold text-4xl">Websocket Evaluation Chatroom</h1>
-            <h2 className="text-white font-medium text-2xl">Sign in to start chatting</h2>
-          </div>
+          <AnonymousView />
         )}
       </main>
     </>
   );
 };
+const ChatView = () => {
+  return (
+    <div className="mt-24">
+      <Chat />
+    </div>
+  )
+}
+const AnonymousView = () => {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 p-4 mt-24">
+      <h1 className="text-white font-bold text-4xl">Websocket Evaluation Chatroom</h1>
+      <h2 className="text-white font-medium text-2xl">Sign in to start chatting</h2>
+    </div>
+  )
+}
 
 export default Home;
 
