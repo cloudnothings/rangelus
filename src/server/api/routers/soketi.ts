@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import PusherJS from "pusher-js";
 import Pusher from "pusher";
 import { env } from "../../../env/server.mjs";
 import { TRPCError } from "@trpc/server";
@@ -15,7 +14,7 @@ export const soketi = new Pusher({
   useTLS: true,
 });
 export const soketiRouter = createTRPCRouter({
-  getClientKeys: protectedProcedure.query(async () => {
+  getClientKeys: protectedProcedure.query(() => {
     return {
       key: env.SOKETI_APP_KEY,
       wsHost: env.SOKETI_HOST,

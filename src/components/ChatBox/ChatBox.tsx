@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
 import PusherJS from "pusher-js";
-import { env } from "../../env/client.mjs";
 import { api } from "../../utils/api";
 import type { Message, User } from "@prisma/client";
 import { useAutoAnimate } from '@formkit/auto-animate/react'
@@ -51,12 +50,12 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
       };
     }
   }, [pusherKeys, chatChannel]);
-  const { mutate } = api.soketi.sendMessage.useMutation();
+  const { mutate: sendMessage } = api.soketi.sendMessage.useMutation();
   const [input, setInput] = useState('');
   // Submit if enter key only
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
-      mutate({ message: input, channel: chatChannel })
+      sendMessage({ message: input, channel: chatChannel })
       setInput('');
     }
   }
