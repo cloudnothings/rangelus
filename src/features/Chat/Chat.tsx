@@ -11,7 +11,7 @@ const Chat = () => {
     },
     refetchOnWindowFocus: false,
   })
-  if (isLoading || isInitialLoading) return <></>
+  if (isLoading || isInitialLoading) return <div className='container bg-black text-white text-xl items-center flex justify-center'>No Channels found</div>
   if (isSuccess) {
     return (
       <div className='container flex justify-evenly items-center'>
@@ -26,13 +26,13 @@ const Chat = () => {
               </select>
               <ChatBox chatChannel={currentChannel.id} /></div>
           ) : (
-            <></>
+            <>Here</>
           )}
         </div>
       </div>
     );
   }
-  return <></>
+  return <div className='container flex justify-center items-center bg-black text-white text-xl '>Ruh Roh</div>
 }
 
 export default Chat

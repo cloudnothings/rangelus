@@ -65,10 +65,6 @@ export const serverEnv = {
 export const clientSchema = z.object({
   // NEXT_PUBLIC_CLIENTVAR: z.string(),
   NEXT_PUBLIC_KEY: z.string(),
-  NEXT_PUBLIC_SOKETI_HOST: z.string(),
-  NEXT_PUBLIC_SOKETI_PORT: z.string(),
-  NEXT_PUBLIC_SOKETI_APP_ID: z.string(),
-  NEXT_PUBLIC_SOKETI_APP_KEY: z.string(),
 });
 
 /**
@@ -79,9 +75,5 @@ export const clientSchema = z.object({
  */
 export const clientEnv = {
   NEXT_PUBLIC_KEY: process.env.NEXT_PUBLIC_KEY,
-  NEXT_PUBLIC_SOKETI_HOST: process.env.NEXT_PUBLIC_SOKETI_HOST,
-  NEXT_PUBLIC_SOKETI_PORT: process.env.NEXT_PUBLIC_SOKETI_PORT,
-  NEXT_PUBLIC_SOKETI_APP_ID: process.env.NEXT_PUBLIC_SOKETI_APP_ID,
-  NEXT_PUBLIC_SOKETI_APP_KEY: process.env.NEXT_PUBLIC_SOKETI_APP_KEY,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };

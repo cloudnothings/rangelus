@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import PusherJS from "pusher-js";
 import Pusher from "pusher";
 import { env } from "../../../env/server.mjs";
 import { TRPCError } from "@trpc/server";
@@ -14,6 +15,14 @@ export const soketi = new Pusher({
   useTLS: true,
 });
 export const soketiRouter = createTRPCRouter({
+  getClientKeys: protectedProcedure.query(async () => {
+    return {
+      key: env.SOKETI_APP_KEY,
+      wsHost: env.SOKETI_HOST,
+      wsPort: env.SOKETI_PORT,
+      wssPort: env.SOKETI_PORT,
+    };
+  }),
   sendMessage: protectedProcedure
     .input(z.object({ message: z.string(), channel: z.string() }))
     .mutation(async ({ input, ctx }) => {

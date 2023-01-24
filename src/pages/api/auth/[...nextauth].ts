@@ -4,7 +4,6 @@ import GoogleProvider from "next-auth/providers/google";
 import AzureADProvider from "next-auth/providers/azure-ad";
 // Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-
 import { env } from "../../../env/server.mjs";
 import { prisma } from "../../../server/db";
 
