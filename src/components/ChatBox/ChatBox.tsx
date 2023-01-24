@@ -50,13 +50,19 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
       };
     }
   }, [pusherKeys, chatChannel]);
-  const { mutate: sendMessage } = api.soketi.sendMessage.useMutation();
+  const { mutate: sendMessage, isLoading: sendLoading } = api.soketi.sendMessage.useMutation({
+    onSuccess: () => {
+      setInput('')
+      handleReturnToBottomClick()
+    }
+  });
   const [input, setInput] = useState('');
   // Submit if enter key only
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
-      sendMessage({ message: input, channel: chatChannel })
-      setInput('');
+      if (input.trim().length) {
+        sendMessage({ message: input.trim(), channel: chatChannel })
+      }
     }
   }
   // Update input value and update height of textarea element
@@ -136,7 +142,8 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
         </div>
         <textarea
           rows={4}
-          className="block p-2.5 w-full text-sm rounded-t-none text-gray-900 bg-gray-50 rounded-lg border border-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          disabled={sendLoading}
+          className="block p-2.5 w-full text-sm rounded-t-none rounded-lg focus: border-none focus:outline-none bg-gray-700 placeholder-gray-400 text-white"
           placeholder="Write your thoughts here..."
           value={input}
           onKeyDown={handleKeyDown}
