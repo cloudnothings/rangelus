@@ -31,6 +31,8 @@ export const serverSchema = z.object({
   SOKETI_APP_ID: z.string(),
   SOKETI_APP_KEY: z.string(),
   SOKETI_APP_SECRET: z.string(),
+  STRIPE_APP_KEY: z.string(),
+  STRIPE_APP_SECRET: z.string(),
 });
 
 /**
@@ -55,6 +57,8 @@ export const serverEnv = {
   SOKETI_APP_ID: process.env.SOKETI_APP_ID,
   SOKETI_APP_KEY: process.env.SOKETI_APP_KEY,
   SOKETI_APP_SECRET: process.env.SOKETI_APP_SECRET,
+  STRIPE_APP_KEY: process.env.STRIPE_APP_KEY,
+  STRIPE_APP_SECRET: process.env.STRIPE_APP_SECRET,
 };
 
 /**

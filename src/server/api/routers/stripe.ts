@@ -1,0 +1,161 @@
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { Stripe } from "stripe";
+import { env } from "../../../env/server.mjs";
+import { TRPCError } from "@trpc/server";
+const stripe = new Stripe(env.STRIPE_APP_SECRET, {
+  apiVersion: "2022-11-15",
+});
+export const stripeRouter = createTRPCRouter({
+  checkoutCart: protectedProcedure
+    .input(
+      z.object({
+        lineItems: z
+          .object({
+            priceId: z.string(),
+            quantity: z.number(),
+          })
+          .array(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.session.user) {
+        throw new Error("Not authenticated");
+      }
+    }),
+  activateItem: protectedProcedure
+    .input(
+      z.object({
+        priceId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await stripe.prices
+        .update(input.priceId, {
+          active: true,
+        })
+        .then((price) => {
+          return price;
+        })
+        .catch((err) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err.message,
+          });
+        });
+    }),
+  deactivateItem: protectedProcedure
+    .input(
+      z.object({
+        priceId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await stripe.prices
+        .update(input.priceId, {
+          active: false,
+        })
+        .then((price) => {
+          return price;
+        })
+        .catch((err) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err.message,
+          });
+        });
+    }),
+
+  createCustomer: protectedProcedure
+    .input(
+      z.object({
+        email: z.string(),
+        name: z.string(),
+        phone: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await stripe.customers
+        .create({
+          email: input.email,
+          name: input.name,
+          phone: input.phone,
+        })
+        .then((customer) => {
+          ctx.prisma.user
+            .update({
+              data: {
+                stripeCustomerId: customer.id,
+              },
+              where: {
+                id: ctx.session.user.id,
+              },
+            })
+            .catch((err) => {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: err.message,
+              });
+            });
+        })
+        .catch((err) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err.message,
+          });
+        });
+    }),
+
+  createItem: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        price: z.number(),
+        description: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await stripe.prices
+        .create({
+          unit_amount: input.price,
+          currency: "usd",
+          nickname: input.name,
+          product_data: {
+            name: input.name,
+            statement_descriptor: input.name,
+          },
+        })
+        .then((price) => {
+          return price;
+        })
+        .catch((err) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err.message,
+          });
+        });
+    }),
+  getItems: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number(),
+        active: z.boolean(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      return await stripe.prices
+        .list({
+          limit: input.limit,
+          active: input.active,
+        })
+        .then((prices) => {
+          return prices.data;
+        })
+        .catch((err) => {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err.message,
+          });
+        });
+    }),
+});
