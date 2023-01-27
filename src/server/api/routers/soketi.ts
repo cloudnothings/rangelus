@@ -29,7 +29,6 @@ export const soketiRouter = createTRPCRouter({
       await soketi
         .trigger(input.channel, "chat-event", {
           content: input.message,
-          author: ctx.session?.user,
           createdAt: now.toISOString(),
         })
         .catch((err) => {
