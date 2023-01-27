@@ -8,7 +8,9 @@ const StripePage = () => {
   const { data: products, refetch: refetchItems } = api.stripe.getItems.useQuery({ limit: 10, active: !showAllItems }, {
     initialData: [],
   })
-
+  const refetchHandler = async () => {
+    await refetchItems()
+  }
   return (
     <div className="container flex flex-col justify-center text-white bg-gray-900 items-center p-2 gap-8 rounded-md mt-4 w-11/12">
       <div className="flex flex-row justify-between w-full">
@@ -17,7 +19,7 @@ const StripePage = () => {
           Create Item
         </button>
       </div>
-      {showCreateItem && <CreateItem refetchCallback={refetchItems} closeWindowCallback={setShowCreateItem} />}
+      {showCreateItem && <CreateItem refetchCallback={refetchHandler} closeWindowCallback={setShowCreateItem} />}
       <div className="mt-8 flex flex-col gap-2 w-full">
         <div className="self-end pr-2">
           <button className="bg-blue-600 p-2 rounded-md text-white font-bold hover:bg-blue-500 active:bg-blue-600"
@@ -30,11 +32,11 @@ const StripePage = () => {
   )
 }
 const Product = (price: Stripe.Price) => {
-  const { mutateAsync: deactivateItem, isSuccess: deactivateSuccessful } = api.stripe.deactivateItem.useMutation()
+  const { mutate: deactivateItem, isSuccess: deactivateSuccessful } = api.stripe.deactivateItem.useMutation()
   const deactivateItemHandler = () => {
     deactivateItem({ priceId: price.id })
   }
-  const { mutateAsync: activateItem, isSuccess: activateSuccessful } = api.stripe.activateItem.useMutation()
+  const { mutate: activateItem, isSuccess: activateSuccessful } = api.stripe.activateItem.useMutation()
   const activateItemHandler = () => {
     activateItem({ priceId: price.id })
   }
@@ -58,11 +60,13 @@ const Product = (price: Stripe.Price) => {
       <div className="flex flex-col justify-evenly p-2">
         {price.active ? (
           <>
-            <button className="bg-blue-600 p-2 rounded-md text-sm text-white font-bold hover:bg-blue-500 active:bg-blue-600"
-            >Add to Cart</button>
+            <button className="bg-blue-600 p-2 rounded-md text-sm text-white font-bold hover:bg-blue-500 active:bg-blue-600">
+              Add to Cart
+            </button>
             <button className="bg-red-600 p-2 rounded-md text-sm text-white font-bold hover:bg-red-500 active:bg-red-600"
-              onClick={deactivateItemHandler}
-            >Deactivate Item</button>
+              onClick={deactivateItemHandler}>
+              Deactivate Item
+            </button>
           </>
         ) : (
           <button className="bg-green-600 p-2 rounded-md text-sm text-white font-bold hover:bg-green-500 active:bg-green-600"

@@ -7,22 +7,6 @@ const stripe = new Stripe(env.STRIPE_APP_SECRET, {
   apiVersion: "2022-11-15",
 });
 export const stripeRouter = createTRPCRouter({
-  checkoutCart: protectedProcedure
-    .input(
-      z.object({
-        lineItems: z
-          .object({
-            priceId: z.string(),
-            quantity: z.number(),
-          })
-          .array(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      if (!ctx.session.user) {
-        throw new Error("Not authenticated");
-      }
-    }),
   activateItem: protectedProcedure
     .input(
       z.object({
@@ -38,9 +22,10 @@ export const stripeRouter = createTRPCRouter({
           return price;
         })
         .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: err.message,
+            message: "Error activating item",
           });
         });
     }),
@@ -59,9 +44,10 @@ export const stripeRouter = createTRPCRouter({
           return price;
         })
         .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: err.message,
+            message: "Error deactivating item",
           });
         });
     }),
@@ -92,16 +78,18 @@ export const stripeRouter = createTRPCRouter({
               },
             })
             .catch((err) => {
+              console.warn(err);
               throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: err.message,
+                message: "Error updating user",
               });
             });
         })
         .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: err.message,
+            message: "Error creating customer",
           });
         });
     }),
@@ -114,7 +102,7 @@ export const stripeRouter = createTRPCRouter({
         description: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       return await stripe.prices
         .create({
           unit_amount: input.price,
@@ -129,9 +117,10 @@ export const stripeRouter = createTRPCRouter({
           return price;
         })
         .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: err.message,
+            message: "Error creating item",
           });
         });
     }),
@@ -142,7 +131,7 @@ export const stripeRouter = createTRPCRouter({
         active: z.boolean(),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       return await stripe.prices
         .list({
           limit: input.limit,
@@ -152,9 +141,10 @@ export const stripeRouter = createTRPCRouter({
           return prices.data;
         })
         .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: err.message,
+            message: "Error getting items",
           });
         });
     }),

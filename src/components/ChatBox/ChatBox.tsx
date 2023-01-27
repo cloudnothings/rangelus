@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PusherJS from "pusher-js";
 import { api } from "../../utils/api";
 import type { Message, User } from "@prisma/client";
@@ -79,19 +79,12 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
   //////////////
   const [animationParent] = useAutoAnimate({ duration: 200, easing: 'ease-in-out' })
   const [autoScroll, setAutoScroll] = useState(true);
-  const [showButton, setShowButton] = useState(false);
   useEffect(() => {
     // Listen for changes in scroll position
     const handleScroll = (event: Event) => {
       const target = event.target as HTMLElement;
       if (autoScroll) {
         setAutoScroll(false);
-      }
-      // Show the return to bottom button if the user has scrolled up more than 25%
-      if (!autoScroll && target.scrollTop < target.scrollHeight * 0.25) {
-        setShowButton(true);
-      } else {
-        setShowButton(false);
       }
     };
 
@@ -123,7 +116,6 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
       chatBox.scrollTop = chatBox.scrollHeight;
     }
     setAutoScroll(true);
-    setShowButton(false);
   }
 
   return (
@@ -162,7 +154,8 @@ const ChatLine = ({ message }: { message: Message & { author: User } }) => {
     <div className="flex flex-row items-start gap-2 z-0">
       {/* Profile Picture Filler */}
       <img
-        src={message.author.image || '/favicon.ico'}
+        alt="profile pic"
+        src={message.author?.image || '/favicon.ico'}
         className="w-8 h-8 mt-1 rounded-full"
       />
       <button
@@ -172,7 +165,7 @@ const ChatLine = ({ message }: { message: Message & { author: User } }) => {
           "flex flex-col w-full overflow-ellipsis cursor-pointer hover:rounded-md px-2 overflow-hidden hover:transition-opacity hover:bg-opacity-20 hover:bg-black"
         )}>
         <div className="text-gray-500 text-xs font-medium">
-          {message.author.name} - {new Date(message.createdAt).toLocaleTimeString()}
+          {message.author?.name || 'Anonymouse'} - {new Date(message.createdAt).toLocaleTimeString()}
         </div>
         <div className="text-gray-50 text-start break-all">
           {message.content}

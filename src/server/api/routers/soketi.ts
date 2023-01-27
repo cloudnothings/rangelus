@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import Pusher from "pusher";
 import { env } from "../../../env/server.mjs";
 import { TRPCError } from "@trpc/server";
@@ -14,7 +14,7 @@ export const soketi = new Pusher({
   useTLS: true,
 });
 export const soketiRouter = createTRPCRouter({
-  getClientKeys: protectedProcedure.query(() => {
+  getClientKeys: publicProcedure.query(() => {
     return {
       key: env.SOKETI_APP_KEY,
       wsHost: env.SOKETI_HOST,
@@ -22,7 +22,7 @@ export const soketiRouter = createTRPCRouter({
       wssPort: env.SOKETI_PORT,
     };
   }),
-  sendMessage: protectedProcedure
+  sendMessage: publicProcedure
     .input(z.object({ message: z.string(), channel: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const now = new Date();
@@ -32,7 +32,8 @@ export const soketiRouter = createTRPCRouter({
           author: ctx.session?.user,
           createdAt: now.toISOString(),
         })
-        .catch(() => {
+        .catch((err) => {
+          console.warn(err);
           throw new TRPCError({
             message: "Error sending message",
             code: "INTERNAL_SERVER_ERROR",
@@ -47,16 +48,12 @@ export const soketiRouter = createTRPCRouter({
                 id: input.channel,
               },
             },
-            author: {
-              connect: {
-                id: ctx.session?.user.id,
-              },
-            },
             createdAt: now,
           },
         })
-        .catch(() => {
+        .catch((err) => {
           // TODO: Retry saving the message.
+          console.warn(err);
           throw new TRPCError({
             message: "Error saving message",
             code: "INTERNAL_SERVER_ERROR",
@@ -64,7 +61,7 @@ export const soketiRouter = createTRPCRouter({
         });
     }),
 
-  getMessages: protectedProcedure
+  getMessages: publicProcedure
     .input(
       z.object({
         channel: z.string(),

@@ -1,7 +1,7 @@
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const channelRouter = createTRPCRouter({
-  getPublicChannels: protectedProcedure.query(async ({ ctx }) => {
+  getPublicChannels: publicProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.channel.findMany({
       where: {
         public: true,

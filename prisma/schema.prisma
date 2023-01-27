@@ -27,8 +27,8 @@ model Message {
     content   String
     channelId String
     channel   Channel  @relation(fields: [channelId], references: [id])
-    author    User     @relation(fields: [authorId], references: [id])
-    authorId  String
+    author    User?    @relation(fields: [authorId], references: [id])
+    authorId  String?
 }
 
 model Channel {

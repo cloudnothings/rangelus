@@ -1,28 +1,28 @@
 import { useState } from "react"
 import { api } from "../../utils/api"
 
-const CreateItem = ({ refetchCallback, closeWindowCallback }: { refetchCallback: () => void, closeWindowCallback: (close: boolean) => void }) => {
+const CreateItem = ({ refetchCallback, closeWindowCallback }: { refetchCallback: () => Promise<void>, closeWindowCallback: (close: boolean) => void }) => {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [price, setPrice] = useState(0)
   const setPriceHandler = (value: string) => {
     setPrice(parseInt(value))
   }
-  const { mutateAsync: createItem, isLoading } = api.stripe.createItem.useMutation({
-    onSuccess: () => {
+  const { mutate: createItem, isLoading } = api.stripe.createItem.useMutation({
+    onSuccess: async () => {
       setName("")
       setDescription("")
       setPrice(0)
-      refetchCallback()
+      await refetchCallback()
     }
   })
-  const submitHandler = async () => {
+  const submitHandler = () => {
     if (name && description && price) {
       createItem({ name, description, price })
       closeWindowCallback(false)
     }
   }
-  const submitMoreHandler = async () => {
+  const submitMoreHandler = () => {
     if (name && description && price) {
       createItem({ name, description, price })
     }
