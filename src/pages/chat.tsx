@@ -1,9 +1,11 @@
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Navbar from "../components/Navbar";
 import Chat from "../features/Chat/Chat";
 
 const Home: NextPage = () => {
+  const { data: session } = useSession();
   return (
     <>
       <Head>
@@ -12,7 +14,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center bg-black">
-        <Navbar title="WebSockets" />
+        <Navbar title="WebSockets" loggedIn={session?.user ? true : false} />
         <ChatView />
       </main>
     </>
