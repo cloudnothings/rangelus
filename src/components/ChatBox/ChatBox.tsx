@@ -10,12 +10,14 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
   ///////
   // DATA
   ///////
-  const [chats, setChats] = useState<ChatBoxMessage[]>([]);
+
   const [pusherKeys, setPusherKeys] = useState<{ key: string; wsHost: string; wsPort: string; }>();
   api.soketi.getClientKeys.useQuery(undefined, {
     onSuccess: setPusherKeys,
     refetchOnWindowFocus: false,
   });
+
+  const [chats, setChats] = useState<ChatBoxMessage[]>([]);
   api.soketi.getMessages.useQuery(
     { channel: chatChannel, limit: MESSAGE_LIMIT },
     {
@@ -29,6 +31,8 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
       onSuccess: setChats,
     },
   );
+
+  // Inititialize Websocket
   useEffect(() => {
     if (pusherKeys) {
       const pusher = new PusherJS(pusherKeys.key, {
@@ -50,6 +54,7 @@ const ChatBox: React.FC<{ chatChannel: string }> = ({ chatChannel }: { chatChann
       };
     }
   }, [pusherKeys, chatChannel]);
+
   const { mutate: sendMessage, isLoading: sendLoading } = api.soketi.sendMessage.useMutation({
     onSuccess: () => {
       setInput('')
